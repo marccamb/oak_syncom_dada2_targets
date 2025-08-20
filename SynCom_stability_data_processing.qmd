@@ -220,7 +220,7 @@ seuil <- nchar(rownames(seqtab_filt))
 
 After filtering, all sequences are `r min(seuil)` and `r max(seuil)` bp and the dataset has `r nrow(seqtab_filt)` ASVs.
 
-### Removing chimera
+## Removing chimera
 
 ```{r}
 rm(seqtab_filt)
@@ -229,12 +229,38 @@ tar_load(seqtab_filt_nochim)
 
 After removing chimera, the dataset has `r nrow(seqtab_filt_nochim)` ASVs.
 
-### Read loss
+## Removing low abundace ASVs
+
+I removed ASVs with less than 1000 reads in the whole dataset because these are low abundance in vitro samples so I expect all ASV to be in high abundance at least in the first time point of the experiment. But I might need to go back and change that later. 
+
+```{r}
+rm(seqtab_filt_nochim)
+tar_load(seqtab_filt_nochim_abund)
+```
+
+After removing low abundance reads, the dataset has `r nrow(seqtab_filt_nochim_abund)` ASVs.
+
+
+## Read loss
 
 We compute the number of reads at each step of the pipeline:
 
 ```{r}
 tar_load(fig_read_loss)
 fig_read_loss
+```
+
+## Session info
+
+<div style="height:300px;overflow:auto;">
+```{r}
+sessioninfo::session_info()
+```
+</div>
+
+Update the `renv` snapshot.
+
+```{r}
+renv::snapshot()
 ```
 
