@@ -1,5 +1,5 @@
 ---
-title: "SynCom co-culture experiments"
+title: "Sequencing data processing for the SynCom co-culture experiment"
 author: "Marine C. Cambon"
 date: last-modified
 published-title: "document last compilation"
@@ -11,7 +11,7 @@ format:
     linestretch: 1.7
     toc: true
     toc-location: left
-    code-fold: true
+    code-fold: false
     code-summary: "Show the code"
     self-contained: true
     link-external-newwindow: true
@@ -25,10 +25,15 @@ editor_options:
 
 ```{r setup, include = FALSE}
 rm(list=ls())
-library(targets)
 ```
 
-## Setting up renv, {targets} and packages
+## Objective
+
+The data was obtained after sequencing of the 16S rRNA gene V4 and sequencing by Novogene using Illumina (Novaseq?) PE250. Sequences will be demultiplexed and then processed using [dada2](https://benjjneb.github.io/dada2/) within a [targets](https://books.ropensci.org/targets/) workflow.
+
+## Setting up {renv}, {targets} and packages
+
+I am installing the different packages I need using {renv} then initialise renv to created the `renv.lockfile` which records the packages version.
 
 ```{r, eval=FALSE}
 renv::install("bioc::dada2")
@@ -36,14 +41,21 @@ renv::install("targets")
 renv::install("tarchetypes")
 renv::install("quarto")
 renv::init()
+renv::snapshot()
+```
 
+I also create the `_targets.R` file which will contain the analysis workflow:
+
+``` r
 targets::use_targets()
 ```
 
+Then we can visualise the workflow network
+
 ```{r}
+library(targets)
 tar_visnetwork()
 ```
-
 
 ## Read demultiplexing
 
@@ -53,7 +65,7 @@ The raw data were downloaded from Novogene on BlueBEAR at `~/cambonm-oak-syncoms
 
 MD5sum of the file is checked and the file is then uncompressed
 
-```{.bash}
+``` bash
 md5sum -c MD5.txt
 > X204SC24085297-Z01-F002.tar: OK
 
@@ -64,22 +76,20 @@ md5sum -c MD5.txt
 > pool_1_FKDN250298699-1A_22NW5FLT4_L5_2.fq.gz: OK
 ```
 
-
 Because I sent a pool of sequences to Novogene which then get ligated to Illumina adapters, fragments are inserted in random orientation and need to be demultiplexed both ways and with both primer and tag!
 
-:::{.callout-tip}
+::: callout-tip
 In later versions of cutadapt, there is the `--revcomp` option to automatically look for primers in both orientation.
 
 I tested the option and my old loop based version and seemed to get more or les the same unknown-unknown files size so I'll just go ahead with the `--revcomp` option from now on.
 :::
 
-
 ### Running `cutadapt`
 
 I ran [Cutadapt](https://cutadapt.readthedocs.io/en/stable/) v4.9 on blueBEAR:
 
-<div style="height:300px;overflow:auto;">
-```{.bash}
+::: {style="height:300px;overflow:auto;"}
+``` bash
 #!/bin/bash
 #SBATCH -o cutadapt.revcomp.demultiplex.o.%J    # Job output file
 #SBATCH -e cutadapt.revcomp.demultiplex.e.%J    # Job error file
@@ -110,14 +120,14 @@ cutadapt \
     -o $output_dir/{name1}-{name2}.R1.fastq.gz -p $output_dir/{name1}-{name2}.R2.fastq.gz \
     $input_dir/pool_1_1.fq.gz $input_dir/pool_1_2.fq.gz
 ```
-</div>
+:::
 
 ### Read number per samples after demutliplexing
 
 I counted the number of read per sample after demultiplexing with the following code:
 
-<div style="height:300px;overflow:auto;">
-```{.bash}
+::: {style="height:300px;overflow:auto;"}
+``` bash
 #!/bin/bash
 #SBATCH -o count.demultiplex.o.%J    # Job output file
 #SBATCH -e count.demultiplex.e.%J    # Job error file
@@ -138,10 +148,9 @@ do
     echo $f $c >> count_demultiplexed.txt
 done
 ```
-</div>
+:::
 
 Then plot the results
-
 
 ```{r}
 tar_load(fig_read_counts_demultiplex)
@@ -150,26 +159,58 @@ fig_read_counts_demultiplex
 
 Every single sample has more than 1000 reads including the negative controls and unused tags! Because there were quite few samples in the pool the sequencing depth is very high. I will need to be quite stringent in the cleaning steps.
 
+::: callout-note
+Up to this point I ran the script manually and not within the targets workflow because I am not to sure how to deal with running bash scripts on slurm withing targets, but I'll try and improve this in the future.
 
-## Read quatlity filtering 
+The {targets} workflow starts below ⬇️
+:::
 
-### Defining paths
+## Read quatlity filtering
 
-Output path:
+First the demultiplexed reads are filtered based on their quality. Sequence with unknown bases and more than 2 expected errors are removed.
 
+First we get the path of the demultiplexed files,
 
-### Quality filtering
+```{r, echo=FALSE}
+tar_source()
+get_file_paths
+```
 
-Checking read quality profiles for a random sample:
+Then we filter the sequences and write them in the output folder.
 
+```{r, echo=FALSE}
+filter_quality
+```
 
-### Checking and filtering sequence lenght
- 
+## DADA2 denoising
+
+Information from the [dada2 tutorial](https://benjjneb.github.io/dada2/tutorial.html):
+
+> The DADA2 algorithm makes use of a parametric error model (err) and every amplicon dataset has a different set of error rates. The learnErrors method learns this error model from the data, by alternating estimation of the error rates and inference of sample composition until they converge on a jointly consistent solution. As in many machine-learning problems, the algorithm must begin with an initial guess, for which the maximum possible error rates in this data are used (the error rates if only the most abundant sequence is correct and all the rest are errors).
+
+```{r}
+denoise
+```
+
+## Paired-end merging
+
+Forward and reverse reads are now merged together
+
+```{.r}
+mergePairs(dadas[["dadaFs"]], filt_paths[["filtFs"]], 
+                        dadas[["dadaRs"]], filt_paths[["filtRs"]], 
+                        verbose=TRUE))
+```
+
+## Checking and filtering sequence lenght
+
+Here we check the lenght of the sequences after merging
+
 ```{r}
 tar_load(fig_seqlength)
 fig_seqlength
 ```
- 
+
 Wow, all ASVs are pretty much the same size, I don't think I need to filter more on the length ! I'll do it anyway just to build the target for future use.
 
 ```{r}
@@ -190,6 +231,7 @@ After removing chimera, the dataset has `r nrow(seqtab_filt_nochim)` ASVs.
 
 ### Read loss
 
+We compute the number of reads at each step of the pipeline:
 
 ```{r}
 tar_load(fig_read_loss)

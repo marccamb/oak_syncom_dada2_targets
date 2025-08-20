@@ -20,15 +20,15 @@ fig_read_counts_demultiplex|stem|60a5e9f68dfab587|7dc2745d06488185|89150ed2db00d
 demultiplex_paths|stem|000628f6150c47ef|9df940c2fd828657|73f08152d19acfbe|-2113323125||t20319.6872086083s|s2063b|2063|rds|local|vector|||0.019||
 filt_paths|stem|ebf98fba7b2fa859|145a326f0ba0e9d9|8e65a802b89b8762|135683658||t20319.7064920373s|s4731b|4731|rds|local|vector|||1666.007||
 fig_seqlength|stem|8b49aa6506a16283|91764e539a516c0e|da915c81a49cce70|-1812199060||t20319.7064971915s|s763818b|763818|rds|local|vector|||0.01||
-report|stem|1e6c99c07badbace|1c89c9c30d22f2bc|ab88d54226eb05d2|787668912|SynCom_stability_data_processing.html*SynCom_stability_data_processing.qmd|t20319.7067656581s|s3796648b|3796648|file|local|vector|||23.006||
+seqtab_output|stem|08d5f59e833de599|5ecf0ab2f6000aa1|731c20c9a6e7e3e3|-1464820573||t0s|s0b|0|file|local|vector|||0.05||
 get_file_paths|function|32fdb5f1a4a05bb9
 remove_chimera|function|585ffcde76fa35d4
 path_count_file|object|649d2bd104ea1331
 plot_read_counts|function|a2dac1cbd1fee8a6
 plot_read_loss|function|b8d30c49759744e3
 input|object|2aa5d41b08561e2d
+.Random.seed|object|6b5c0c1afbde3ee3
 plot_sequence_length|function|0e8fcc65c79ac117
-.Random.seed|object|645f9f83b4dc4bb3
 outp|object|21d57c0cbc926469
 filter_quality|function|712b498589cb8f61
 denoise|function|ac7eb8f528310e77
@@ -36,4 +36,4 @@ track_read_loss|function|86c367b339565857
 path_sample_tags_file|object|0bda39d030808766
 filt_seq_length|function|6d59c1d4f5217372
 create_metadata|function|5b1167962a78b59d
-seqtab_output|stem|08d5f59e833de599|5ecf0ab2f6000aa1|731c20c9a6e7e3e3|-1464820573||t0s|s0b|0|file|local|vector|||0.05||
+report|stem|7270e3afc67c6c87|1c89c9c30d22f2bc|ab88d54226eb05d2|787668912|SynCom_stability_data_processing.html*SynCom_stability_data_processing.qmd|t20320.4367541196s|s3804825b|3804825|file|local|vector|||15.309||

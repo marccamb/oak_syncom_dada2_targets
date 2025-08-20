@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Marine C. Cambon">
-<meta name="dcterms.date" content="2025-08-19">
+<meta name="dcterms.date" content="2025-08-20">
 
-<title>SynCom co-culture experiments</title>
+<title>Sequencing data processing for the SynCom co-culture experiment</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -8414,17 +8414,18 @@ HTMLWidgets.widget({
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#setting-up-renv-targets-and-packages" id="toc-setting-up-renv-targets-and-packages" class="nav-link active" data-scroll-target="#setting-up-renv-targets-and-packages">Setting up renv, {targets} and packages</a></li>
+  <li><a href="#objective" id="toc-objective" class="nav-link active" data-scroll-target="#objective">Objective</a></li>
+  <li><a href="#setting-up-renv-targets-and-packages" id="toc-setting-up-renv-targets-and-packages" class="nav-link" data-scroll-target="#setting-up-renv-targets-and-packages">Setting up {renv}, {targets} and packages</a></li>
   <li><a href="#read-demultiplexing" id="toc-read-demultiplexing" class="nav-link" data-scroll-target="#read-demultiplexing">Read demultiplexing</a>
   <ul class="collapse">
   <li><a href="#running-cutadapt" id="toc-running-cutadapt" class="nav-link" data-scroll-target="#running-cutadapt">Running <code>cutadapt</code></a></li>
   <li><a href="#read-number-per-samples-after-demutliplexing" id="toc-read-number-per-samples-after-demutliplexing" class="nav-link" data-scroll-target="#read-number-per-samples-after-demutliplexing">Read number per samples after demutliplexing</a></li>
   </ul></li>
-  <li><a href="#read-quatlity-filtering" id="toc-read-quatlity-filtering" class="nav-link" data-scroll-target="#read-quatlity-filtering">Read quatlity filtering</a>
+  <li><a href="#read-quatlity-filtering" id="toc-read-quatlity-filtering" class="nav-link" data-scroll-target="#read-quatlity-filtering">Read quatlity filtering</a></li>
+  <li><a href="#dada2-denoising" id="toc-dada2-denoising" class="nav-link" data-scroll-target="#dada2-denoising">DADA2 denoising</a></li>
+  <li><a href="#paired-end-merging" id="toc-paired-end-merging" class="nav-link" data-scroll-target="#paired-end-merging">Paired-end merging</a></li>
+  <li><a href="#checking-and-filtering-sequence-lenght" id="toc-checking-and-filtering-sequence-lenght" class="nav-link" data-scroll-target="#checking-and-filtering-sequence-lenght">Checking and filtering sequence lenght</a>
   <ul class="collapse">
-  <li><a href="#defining-paths" id="toc-defining-paths" class="nav-link" data-scroll-target="#defining-paths">Defining paths</a></li>
-  <li><a href="#quality-filtering" id="toc-quality-filtering" class="nav-link" data-scroll-target="#quality-filtering">Quality filtering</a></li>
-  <li><a href="#checking-and-filtering-sequence-lenght" id="toc-checking-and-filtering-sequence-lenght" class="nav-link" data-scroll-target="#checking-and-filtering-sequence-lenght">Checking and filtering sequence lenght</a></li>
   <li><a href="#removing-chimera" id="toc-removing-chimera" class="nav-link" data-scroll-target="#removing-chimera">Removing chimera</a></li>
   <li><a href="#read-loss" id="toc-read-loss" class="nav-link" data-scroll-target="#read-loss">Read loss</a></li>
   </ul></li>
@@ -8437,7 +8438,7 @@ HTMLWidgets.widget({
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">SynCom co-culture experiments</h1>
+<h1 class="title">Sequencing data processing for the SynCom co-culture experiment</h1>
 </div>
 
 
@@ -8454,7 +8455,7 @@ HTMLWidgets.widget({
     <div>
     <div class="quarto-title-meta-heading">document last compilation</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 19, 2025</p>
+      <p class="date">August 20, 2025</p>
     </div>
   </div>
   
@@ -8466,33 +8467,35 @@ HTMLWidgets.widget({
 </header>
 
 
+<section id="objective" class="level2">
+<h2 class="anchored" data-anchor-id="objective">Objective</h2>
+<p>The data was obtained after sequencing of the 16S rRNA gene V4 and sequencing by Novogene using Illumina (Novaseq?) PE250. Sequences will be demultiplexed and then processed using <a href="https://benjjneb.github.io/dada2/">dada2</a> within a <a href="https://books.ropensci.org/targets/">targets</a> workflow.</p>
+</section>
 <section id="setting-up-renv-targets-and-packages" class="level2">
-<h2 class="anchored" data-anchor-id="setting-up-renv-targets-and-packages">Setting up renv, {targets} and packages</h2>
+<h2 class="anchored" data-anchor-id="setting-up-renv-targets-and-packages">Setting up {renv}, {targets} and packages</h2>
+<p>I am installing the different packages I need using {renv} then initialise renv to created the <code>renv.lockfile</code> which records the packages version.</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;bioc::dada2&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;targets&quot;</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;tarchetypes&quot;</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;quarto&quot;</span>)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>targets<span class="sc">::</span><span class="fu">use_targets</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>I also create the <code>_targets.R</code> file which will contain the analysis workflow:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>targets<span class="sc">::</span><span class="fu">use_targets</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Then we can visualise the workflow network</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_visnetwork</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(targets)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_visnetwork</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Warning message:
 In png(..., res = dpi, units = &quot;in&quot;) :
   unable to open connection to X11 display &#39;&#39;</code></pre>
 </div>
 <div class="cell-output-display">
-<div class="visNetwork html-widget html-fill-item" id="htmlwidget-ef1e3d5f118204c9b1c7" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-ef1e3d5f118204c9b1c7">{"x":{"nodes":{"name":["count_file","create_metadata","dadas","demultiplex_paths","denoise","fig_read_counts_demultiplex","fig_read_loss","fig_seqlength","filt_paths","filt_seq_length","filter_quality","get_file_paths","input","mergers","metadata","outp","path_count_file","path_sample_tags_file","plot_read_counts","plot_read_loss","plot_sequence_length","read_loss","remove_chimera","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt_nochim","track_read_loss"],"type":["stem","function","stem","stem","function","stem","stem","stem","stem","function","function","function","object","stem","stem","object","object","object","function","function","function","stem","function","stem","stem","stem","stem","stem","function"],"description":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"status":["uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","dispatched","uptodate","uptodate","uptodate","uptodate","uptodate"],"seconds":[14.459,null,1845.852,0.019,null,0.05,0.034,0.01,1666.007,null,null,null,null,389.34,0.014,null,null,null,null,null,null,0.024,null,11.818,0,0.075,0.004,6.935,null],"bytes":[34127,null,64993846,2063,null,227386,169480,763818,4731,null,null,null,null,612648,3738,null,null,null,null,null,null,4817,null,3796059,5105,172979,156271,48318,null],"branches":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"label":["count_file","create_metadata","dadas","demultiplex_paths","denoise","fig_read_counts_demultiplex","fig_read_loss","fig_seqlength","filt_paths","filt_seq_length","filter_quality","get_file_paths","input","mergers","metadata","outp","path_count_file","path_sample_tags_file","plot_read_counts","plot_read_loss","plot_sequence_length","read_loss","remove_chimera","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt_nochim","track_read_loss"],"color":["#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#DC863B","#354823","#354823","#354823","#354823","#354823"],"id":["count_file","create_metadata","dadas","demultiplex_paths","denoise","fig_read_counts_demultiplex","fig_read_loss","fig_seqlength","filt_paths","filt_seq_length","filter_quality","get_file_paths","input","mergers","metadata","outp","path_count_file","path_sample_tags_file","plot_read_counts","plot_read_loss","plot_sequence_length","read_loss","remove_chimera","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt_nochim","track_read_loss"],"level":[2,1,6,4,1,4,12,9,5,1,1,1,1,7,3,1,1,1,1,1,1,11,1,13,2,8,9,10,1],"shape":["dot","triangle","dot","dot","triangle","dot","dot","dot","dot","triangle","triangle","triangle","triangleDown","dot","dot","triangleDown","triangleDown","triangleDown","triangle","triangle","triangle","dot","triangle","dot","dot","dot","dot","dot","triangle"]},"edges":{"from":["path_count_file","denoise","filt_paths","input","metadata","get_file_paths","metadata","plot_read_counts","plot_read_loss","read_loss","plot_sequence_length","seqtab","outp","filter_quality","demultiplex_paths","dadas","filt_paths","count_file","create_metadata","sample_tags_file","mergers","filt_paths","dadas","seqtab_filt_nochim","seqtab_filt","track_read_loss","fig_seqlength","fig_read_counts_demultiplex","seqtab_filt","seqtab_filt_nochim","fig_read_loss","path_sample_tags_file","mergers","filt_seq_length","seqtab","remove_chimera","seqtab_filt"],"to":["count_file","dadas","dadas","demultiplex_paths","demultiplex_paths","demultiplex_paths","fig_read_counts_demultiplex","fig_read_counts_demultiplex","fig_read_loss","fig_read_loss","fig_seqlength","fig_seqlength","filt_paths","filt_paths","filt_paths","mergers","mergers","metadata","metadata","metadata","read_loss","read_loss","read_loss","read_loss","read_loss","read_loss","report","report","report","report","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt","seqtab_filt_nochim","seqtab_filt_nochim"],"color":["#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#DC863B","#DC863B","#DC863B","#DC863B","#DC863B","#354823","#354823","#354823","#354823","#354823","#354823"],"arrows":["to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","physics":false},"manipulation":{"enabled":false},"edges":{"smooth":{"type":"cubicBezier","forceDirection":"horizontal"}},"physics":{"stabilization":false},"interaction":{"zoomSpeed":1},"layout":{"hierarchical":{"enabled":true,"levelSeparation":161.5384615384615,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false},"main":{"text":"","style":"font-family:Georgia, Times New Roman, Times, serif;font-weight:bold;font-size:20px;text-align:center;"},"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","highlight":{"enabled":true,"hoverNearest":false,"degree":{"from":1,"to":1},"algorithm":"hierarchical","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":true,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"},"legend":{"width":0.2,"useGroups":false,"position":"right","ncol":1,"stepX":100,"stepY":100,"zoom":true,"nodes":{"label":["Up to date","Dispatched","Regular\ntarget","Function","Object"],"color":["#354823","#DC863B","#899DA4","#899DA4","#899DA4"],"shape":["dot","dot","dot","triangle","triangleDown"]},"nodesToDataframe":true},"tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script>
+<div class="visNetwork html-widget html-fill-item" id="htmlwidget-dd1a1d1a51750cf5cd17" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-dd1a1d1a51750cf5cd17">{"x":{"nodes":{"name":["count_file","create_metadata","dadas","demultiplex_paths","denoise","fig_read_counts_demultiplex","fig_read_loss","fig_seqlength","filt_paths","filt_seq_length","filter_quality","get_file_paths","input","mergers","metadata","outp","path_count_file","path_sample_tags_file","plot_read_counts","plot_read_loss","plot_sequence_length","read_loss","remove_chimera","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt_nochim","seqtab_output","track_read_loss"],"type":["stem","function","stem","stem","function","stem","stem","stem","stem","function","function","function","object","stem","stem","object","object","object","function","function","function","stem","function","stem","stem","stem","stem","stem","stem","function"],"description":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"status":["uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","dispatched","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate"],"seconds":[14.459,null,1845.852,0.019,null,0.05,0.034,0.01,1666.007,null,null,null,null,389.34,0.014,null,null,null,null,null,null,0.024,null,8.805,0,0.075,0.004,6.935,0.05,null],"bytes":[34127,null,64993846,2063,null,227386,169480,763818,4731,null,null,null,null,612648,3738,null,null,null,null,null,null,4817,null,3796648,5105,172979,156271,48318,0,null],"branches":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"label":["count_file","create_metadata","dadas","demultiplex_paths","denoise","fig_read_counts_demultiplex","fig_read_loss","fig_seqlength","filt_paths","filt_seq_length","filter_quality","get_file_paths","input","mergers","metadata","outp","path_count_file","path_sample_tags_file","plot_read_counts","plot_read_loss","plot_sequence_length","read_loss","remove_chimera","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt_nochim","seqtab_output","track_read_loss"],"color":["#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#DC863B","#354823","#354823","#354823","#354823","#354823","#354823"],"id":["count_file","create_metadata","dadas","demultiplex_paths","denoise","fig_read_counts_demultiplex","fig_read_loss","fig_seqlength","filt_paths","filt_seq_length","filter_quality","get_file_paths","input","mergers","metadata","outp","path_count_file","path_sample_tags_file","plot_read_counts","plot_read_loss","plot_sequence_length","read_loss","remove_chimera","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt_nochim","seqtab_output","track_read_loss"],"level":[2,1,6,4,1,4,12,9,5,1,1,1,1,7,3,1,1,1,1,1,1,11,1,13,2,8,9,10,11,1],"shape":["dot","triangle","dot","dot","triangle","dot","dot","dot","dot","triangle","triangle","triangle","triangleDown","dot","dot","triangleDown","triangleDown","triangleDown","triangle","triangle","triangle","dot","triangle","dot","dot","dot","dot","dot","dot","triangle"]},"edges":{"from":["path_count_file","filt_paths","denoise","get_file_paths","input","metadata","plot_read_counts","metadata","plot_read_loss","read_loss","plot_sequence_length","seqtab","filter_quality","outp","demultiplex_paths","dadas","filt_paths","count_file","create_metadata","sample_tags_file","mergers","filt_paths","seqtab_filt_nochim","seqtab_filt","track_read_loss","dadas","fig_read_counts_demultiplex","seqtab_filt_nochim","seqtab_filt","fig_read_loss","fig_seqlength","path_sample_tags_file","mergers","seqtab","filt_seq_length","remove_chimera","seqtab_filt","outp","seqtab_filt_nochim"],"to":["count_file","dadas","dadas","demultiplex_paths","demultiplex_paths","demultiplex_paths","fig_read_counts_demultiplex","fig_read_counts_demultiplex","fig_read_loss","fig_read_loss","fig_seqlength","fig_seqlength","filt_paths","filt_paths","filt_paths","mergers","mergers","metadata","metadata","metadata","read_loss","read_loss","read_loss","read_loss","read_loss","read_loss","report","report","report","report","report","sample_tags_file","seqtab","seqtab_filt","seqtab_filt","seqtab_filt_nochim","seqtab_filt_nochim","seqtab_output","seqtab_output"],"color":["#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#DC863B","#DC863B","#DC863B","#DC863B","#DC863B","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823"],"arrows":["to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","physics":false},"manipulation":{"enabled":false},"edges":{"smooth":{"type":"cubicBezier","forceDirection":"horizontal"}},"physics":{"stabilization":false},"interaction":{"zoomSpeed":1},"layout":{"hierarchical":{"enabled":true,"levelSeparation":161.5384615384615,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false},"main":{"text":"","style":"font-family:Georgia, Times New Roman, Times, serif;font-weight:bold;font-size:20px;text-align:center;"},"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","highlight":{"enabled":true,"hoverNearest":false,"degree":{"from":1,"to":1},"algorithm":"hierarchical","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":true,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"},"legend":{"width":0.2,"useGroups":false,"position":"right","ncol":1,"stepX":100,"stepY":100,"zoom":true,"nodes":{"label":["Up to date","Dispatched","Regular\ntarget","Function","Object"],"color":["#354823","#DC863B","#899DA4","#899DA4","#899DA4"],"shape":["dot","dot","dot","triangle","triangleDown"]},"nodesToDataframe":true},"tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section>
@@ -8501,14 +8504,14 @@ In png(..., res = dpi, units = &quot;in&quot;) :
 <p>The run contains multiplexed samples and only one primer pair. The full sequences of primers + spacer + tag are in <code>data/tag_primers_16SV4_fwd.fasta</code> and <code>data/tag_primers_16SV4_rev.fasta</code>.</p>
 <p>The raw data were downloaded from Novogene on BlueBEAR at <code>~/cambonm-oak-syncoms/250730_SynCom_stability_experiment/01_raw_data</code></p>
 <p>MD5sum of the file is checked and the file is then uncompressed</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">md5sum</span> <span class="at">-c</span> MD5.txt</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> X204SC24085297-Z01-F002.tar: <span class="ex">OK</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> X204SC24085297-Z01-F002.tar</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> X204SC24085297-Z01-F002/01.RawData/pool_1/</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">md5sum</span> <span class="at">-c</span> MD5.txt </span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> pool_1_FKDN250298699-1A_22NW5FLT4_L5_1.fq.gz: <span class="ex">OK</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> pool_1_FKDN250298699-1A_22NW5FLT4_L5_2.fq.gz: <span class="ex">OK</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">md5sum</span> <span class="at">-c</span> MD5.txt</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> X204SC24085297-Z01-F002.tar: <span class="ex">OK</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> X204SC24085297-Z01-F002.tar</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> X204SC24085297-Z01-F002/01.RawData/pool_1/</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">md5sum</span> <span class="at">-c</span> MD5.txt </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> pool_1_FKDN250298699-1A_22NW5FLT4_L5_1.fq.gz: <span class="ex">OK</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> pool_1_FKDN250298699-1A_22NW5FLT4_L5_2.fq.gz: <span class="ex">OK</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Because I sent a pool of sequences to Novogene which then get ligated to Illumina adapters, fragments are inserted in random orientation and need to be demultiplexed both ways and with both primer and tag!</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -8528,68 +8531,65 @@ Tip
 <h3 class="anchored" data-anchor-id="running-cutadapt">Running <code>cutadapt</code></h3>
 <p>I ran <a href="https://cutadapt.readthedocs.io/en/stable/">Cutadapt</a> v4.9 on blueBEAR:</p>
 <div style="height:300px;overflow:auto;">
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -o cutadapt.revcomp.demultiplex.o.%J    # Job output file</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -e cutadapt.revcomp.demultiplex.e.%J    # Job error file</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --ntasks=4            # number of parallel processes (tasks)</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --qos=bbdefault       # selected queue</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=72:00:00        # time limit</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-e</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> purge</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load bear-apps/2023a</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load cutadapt/4.9-GCCcore-12.3.0</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">## 16SV4</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">input_dir</span><span class="op">=</span>/rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/01_raw_data/PE250/X204SC24085297-Z01-F003/01.RawData/pool_1/</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">output_dir</span><span class="op">=</span>16SV4_revcomp</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="va">$output_dir</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># --cores=0 auto detects the number of available cores</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co"># --revcomp searchs for primers and adapters in both orientations</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="ex">cutadapt</span> <span class="dt">\</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">-e</span> 0.15 <span class="at">--no-indels</span> <span class="dt">\</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">--cores</span><span class="op">=</span>0 <span class="dt">\</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">--revcomp</span> <span class="dt">\</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">-g</span> file:tag_primers_16SV4_fwd.fasta <span class="dt">\</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">-G</span> file:tag_primers_16SV4_rev.fasta <span class="dt">\</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> <span class="va">$output_dir</span>/{name1}-{name2}.R1.fastq.gz <span class="at">-p</span> <span class="va">$output_dir</span>/{name1}-{name2}.R2.fastq.gz <span class="dt">\</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="va">$input_dir</span>/pool_1_1.fq.gz <span class="va">$input_dir</span>/pool_1_2.fq.gz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -o cutadapt.revcomp.demultiplex.o.%J    # Job output file</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -e cutadapt.revcomp.demultiplex.e.%J    # Job error file</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --ntasks=4            # number of parallel processes (tasks)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --qos=bbdefault       # selected queue</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=72:00:00        # time limit</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-e</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> purge</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load bear-apps/2023a</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load cutadapt/4.9-GCCcore-12.3.0</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co">## 16SV4</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">input_dir</span><span class="op">=</span>/rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/01_raw_data/PE250/X204SC24085297-Z01-F003/01.RawData/pool_1/</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">output_dir</span><span class="op">=</span>16SV4_revcomp</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="va">$output_dir</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co"># --cores=0 auto detects the number of available cores</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co"># --revcomp searchs for primers and adapters in both orientations</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="ex">cutadapt</span> <span class="dt">\</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">-e</span> 0.15 <span class="at">--no-indels</span> <span class="dt">\</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">--cores</span><span class="op">=</span>0 <span class="dt">\</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">--revcomp</span> <span class="dt">\</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">-g</span> file:tag_primers_16SV4_fwd.fasta <span class="dt">\</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">-G</span> file:tag_primers_16SV4_rev.fasta <span class="dt">\</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> <span class="va">$output_dir</span>/{name1}-{name2}.R1.fastq.gz <span class="at">-p</span> <span class="va">$output_dir</span>/{name1}-{name2}.R2.fastq.gz <span class="dt">\</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="va">$input_dir</span>/pool_1_1.fq.gz <span class="va">$input_dir</span>/pool_1_2.fq.gz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="read-number-per-samples-after-demutliplexing" class="level3">
 <h3 class="anchored" data-anchor-id="read-number-per-samples-after-demutliplexing">Read number per samples after demutliplexing</h3>
 <p>I counted the number of read per sample after demultiplexing with the following code:</p>
 <div style="height:300px;overflow:auto;">
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -o count.demultiplex.o.%J    # Job output file</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -e count.demultiplex.e.%J    # Job error file</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --ntasks=1            # number of parallel processes (tasks)</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --qos=bbdefault       # selected queue</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=00:05:00        # time limit</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-e</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> purge</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load bear-apps/2023a/live</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">touch</span> count_demultiplexed.txt</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> 16SV4_revcomp/<span class="pp">*</span>R1.fastq.gz</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="cf">do</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="va">c</span><span class="op">=</span><span class="va">$(</span><span class="fu">zcat</span> <span class="va">$f</span> <span class="kw">|</span> <span class="fu">grep</span> @ <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span><span class="va">)</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="va">$f</span> <span class="va">$c</span> <span class="op">&gt;&gt;</span> count_demultiplexed.txt</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -o count.demultiplex.o.%J    # Job output file</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH -e count.demultiplex.e.%J    # Job error file</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --ntasks=1            # number of parallel processes (tasks)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --qos=bbdefault       # selected queue</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=00:05:00        # time limit</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-e</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> purge</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load bear-apps/2023a/live</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">touch</span> count_demultiplexed.txt</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> 16SV4_revcomp/<span class="pp">*</span>R1.fastq.gz</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="cf">do</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="va">c</span><span class="op">=</span><span class="va">$(</span><span class="fu">zcat</span> <span class="va">$f</span> <span class="kw">|</span> <span class="fu">grep</span> @ <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span><span class="va">)</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="va">$f</span> <span class="va">$c</span> <span class="op">&gt;&gt;</span> count_demultiplexed.txt</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Then plot the results</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(fig_read_counts_demultiplex)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fig_read_counts_demultiplex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(fig_read_counts_demultiplex)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>fig_read_counts_demultiplex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -8599,26 +8599,92 @@ Tip
 </div>
 </div>
 <p>Every single sample has more than 1000 reads including the negative controls and unused tags! Because there were quite few samples in the pool the sequencing depth is very high. I will need to be quite stringent in the cleaning steps.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Up to this point I ran the script manually and not within the targets workflow because I am not to sure how to deal with running bash scripts on slurm withing targets, but I’ll try and improve this in the future.</p>
+<p>The {targets} workflow starts below ⬇️</p>
+</div>
+</div>
 </section>
 </section>
 <section id="read-quatlity-filtering" class="level2">
 <h2 class="anchored" data-anchor-id="read-quatlity-filtering">Read quatlity filtering</h2>
-<section id="defining-paths" class="level3">
-<h3 class="anchored" data-anchor-id="defining-paths">Defining paths</h3>
-<p>Output path:</p>
-</section>
-<section id="quality-filtering" class="level3">
-<h3 class="anchored" data-anchor-id="quality-filtering">Quality filtering</h3>
-<p>Checking read quality profiles for a random sample:</p>
-</section>
-<section id="checking-and-filtering-sequence-lenght" class="level3">
-<h3 class="anchored" data-anchor-id="checking-and-filtering-sequence-lenght">Checking and filtering sequence lenght</h3>
+<p>First the demultiplexed reads are filtered based on their quality. Sequence with unknown bases and more than 2 expected errors are removed.</p>
+<p>First we get the path of the demultiplexed files,</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(fig_seqlength)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>fig_seqlength</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>function(path, metadata) {
+  fnFs &lt;- (list.files(path, pattern=&quot;.R1.fastq&quot;, full.names = TRUE))
+  fnRs &lt;- sort(list.files(path, pattern=&quot;.R2.fastq&quot;, full.names = TRUE))
+  sample.names &lt;- metadata$sample_ID[match(basename(fnFs), basename(metadata$file))]
+  fnFs &lt;- fnFs[!is.na(sample.names)]
+  fnRs &lt;- fnRs[!is.na(sample.names)]
+  sample.names &lt;- sample.names[!is.na(sample.names)]
+  return(list(&quot;fnFs&quot; = fnFs, &quot;fnRs&quot; = fnRs, &quot;sample_names&quot;=sample.names))
+}</code></pre>
+</div>
+</div>
+<p>Then we filter the sequences and write them in the output folder.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>function(fns_paths, outp) {
+  filtFs &lt;- file.path(outp, &quot;01_filtered&quot;, paste0(fns_paths[[&quot;sample_names&quot;]], &quot;_F_filt.fastq.gz&quot;))
+  filtRs &lt;- file.path(outp, &quot;01_filtered&quot;, paste0(fns_paths[[&quot;sample_names&quot;]], &quot;_R_filt.fastq.gz&quot;))
+  names(filtFs) &lt;- fns_paths[[&quot;sample_names&quot;]]
+  names(filtRs) &lt;- fns_paths[[&quot;sample_names&quot;]]
+  
+  count_denoise &lt;- filterAndTrim(fns_paths$fnFs, filtFs, fns_paths$fnRs, filtRs, #truncLen=c(240,160),
+                                 maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+                                 compress=TRUE, multithread=FALSE) # Multicore is not working on RStudio server I am not sure why
+  return(list(&quot;filtFs&quot;=filtFs, &quot;filtRs&quot;=filtRs, &quot;count_denoise&quot;=count_denoise))
+}</code></pre>
+</div>
+</div>
+</section>
+<section id="dada2-denoising" class="level2">
+<h2 class="anchored" data-anchor-id="dada2-denoising">DADA2 denoising</h2>
+<p>Information from the <a href="https://benjjneb.github.io/dada2/tutorial.html">dada2 tutorial</a>:</p>
+<blockquote class="blockquote">
+<p>The DADA2 algorithm makes use of a parametric error model (err) and every amplicon dataset has a different set of error rates. The learnErrors method learns this error model from the data, by alternating estimation of the error rates and inference of sample composition until they converge on a jointly consistent solution. As in many machine-learning problems, the algorithm must begin with an initial guess, for which the maximum possible error rates in this data are used (the error rates if only the most abundant sequence is correct and all the rest are errors).</p>
+</blockquote>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>denoise</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>function(filt_paths) {
+  filtFs &lt;- filt_paths[[&quot;filtFs&quot;]]
+  filtRs &lt;- filt_paths[[&quot;filtRs&quot;]]
+ 
+  errF &lt;- learnErrors(filtFs, multithread=FALSE)
+  errR &lt;- learnErrors(filtRs, multithread=FALSE)
+  
+  dadaFs &lt;- dada(filtFs, err=errF, multithread=TRUE)
+  dadaRs &lt;- dada(filtRs, err=errR, multithread=TRUE)
+  return(list(&quot;dadaFs&quot;=dadaFs, &quot;dadaRs&quot;=dadaRs))
+}</code></pre>
+</div>
+</div>
+</section>
+<section id="paired-end-merging" class="level2">
+<h2 class="anchored" data-anchor-id="paired-end-merging">Paired-end merging</h2>
+<p>Forward and reverse reads are now merged together</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mergePairs</span>(dadas[[<span class="st">&quot;dadaFs&quot;</span>]], filt_paths[[<span class="st">&quot;filtFs&quot;</span>]], </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>                        dadas[[<span class="st">&quot;dadaRs&quot;</span>]], filt_paths[[<span class="st">&quot;filtRs&quot;</span>]], </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">verbose=</span><span class="cn">TRUE</span>)<span class="er">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="checking-and-filtering-sequence-lenght" class="level2">
+<h2 class="anchored" data-anchor-id="checking-and-filtering-sequence-lenght">Checking and filtering sequence lenght</h2>
+<p>Here we check the lenght of the sequences after merging</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(fig_seqlength)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fig_seqlength</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -8629,33 +8695,24 @@ Tip
 </div>
 <p>Wow, all ASVs are pretty much the same size, I don’t think I need to filter more on the length ! I’ll do it anyway just to build the target for future use.</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(seqtab_filt)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>seuil <span class="ot">&lt;-</span> <span class="fu">nchar</span>(<span class="fu">rownames</span>(seqtab_filt))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(seqtab_filt)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>seuil <span class="ot">&lt;-</span> <span class="fu">nchar</span>(<span class="fu">rownames</span>(seqtab_filt))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>After filtering, all sequences are 230 and 270 bp and the dataset has 3915 ASVs.</p>
-</section>
 <section id="removing-chimera" class="level3">
 <h3 class="anchored" data-anchor-id="removing-chimera">Removing chimera</h3>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(seqtab_filt)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(seqtab_filt_nochim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(seqtab_filt)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(seqtab_filt_nochim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>After removing chimera, the dataset has 1119 ASVs.</p>
 </section>
 <section id="read-loss" class="level3">
 <h3 class="anchored" data-anchor-id="read-loss">Read loss</h3>
+<p>We compute the number of reads at each step of the pipeline:</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(fig_read_loss)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fig_read_loss</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tar_load</span>(fig_read_loss)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>fig_read_loss</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
