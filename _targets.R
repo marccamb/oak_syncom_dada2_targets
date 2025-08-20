@@ -7,7 +7,7 @@ library(quarto)
 
 # Set target options:
 tar_option_set(
-  packages = c("dada2", "ggplot2")
+  packages = c("dada2", "ggplot2", "rBLAST")
   # format = "qs", # Optionally set the default storage format. qs is fast.
   #
   # Alternatively, if you want workers to run on a high-performance computing
@@ -66,7 +66,7 @@ list(
   tar_target(mergers, 
              mergePairs(dadas[["dadaFs"]], filt_paths[["filtFs"]], 
                         dadas[["dadaRs"]], filt_paths[["filtRs"]], 
-                        verbose=TRUE)),
+                        verbose = TRUE)),
   # Create seqtab 
   tar_target(seqtab, 
              t(makeSequenceTable(mergers))),
@@ -74,17 +74,28 @@ list(
   tar_target(fig_seqlength, 
              plot_sequence_length(seqtab)),
   # Filter ASVs based on their length
-  tar_target(seqtab_filt, filt_seq_length(seqtab, seuil = c(230, 270))),
+  tar_target(seqtab_filt, 
+             filt_seq_length(seqtab, seuil = c(230, 270))),
   # Remove chimera
-  tar_target(seqtab_filt_nochim, remove_chimera(seqtab_filt)),
-  # Save asv_table output
-  tar_target(seqtab_output, write.csv(seqtab_filt_nochim, file.path(outp, "asv_table_dada2.csv")), format = "file"),
+  tar_target(seqtab_filt_nochim, 
+             remove_chimera(seqtab_filt)),
+  # Remove low abundance ASVs
+  tar_target(seqtab_filt_nochim_abund, 
+             filt_asv_abundance(seqtab_filt_nochim, seuil = 1000)),
+  # Rename ASV and save a ASV sequence fasta file
+  tar_target(asv_metadata, 
+             create_asv_metadata(seqtab_filt_nochim_abund, outp)),
+  # Save rename ASVs in the seqtab and produce asv_table output
+  tar_target(seqtab_final, 
+             save_asv_table(seqtab_filt_nochim_abund, asv_metadata, outp)),
   # Track read loss
-  tar_target(read_loss, track_read_loss(filt_paths[["count_denoise"]], 
-                                        dadas[["dadaFs"]], 
-                                        mergers, 
-                                        seqtab_filt, 
-                                        seqtab_filt_nochim)),
+  tar_target(read_loss, 
+             track_read_loss(filt_paths[["count_denoise"]], 
+                             dadas[["dadaFs"]], 
+                             mergers, 
+                             seqtab_filt, 
+                             seqtab_filt_nochim,
+                             seqtab_filt_nochim_abund)),
   # Plot read loss
   tar_target(fig_read_loss, plot_read_loss(read_loss)),
   ## Generation of the quarto report

@@ -1,4 +1,4 @@
-track_read_loss <- function(counts_filts, dada_F, mergers, seqtab_filt, seqtab_filt_nochim) {
+track_read_loss <- function(counts_filts, dada_F, mergers, seqtab_filt, seqtab_filt_nochim, seqtab_filt_nochim_abund) {
   ### Read loss
   getN <- function(x) sum(getUniques(x))
   track <- cbind(
@@ -6,9 +6,10 @@ track_read_loss <- function(counts_filts, dada_F, mergers, seqtab_filt, seqtab_f
     sapply(dada_F, getN), 
     sapply(mergers, getN),
     colSums(seqtab_filt),
-    colSums(seqtab_filt_nochim)
+    colSums(seqtab_filt_nochim),
+    colSums(seqtab_filt_nochim_abund)
   )
-  colnames(track) <- c("demultiplexed", "qual_fitered", "denoisedF", "merged", "length_filtered", "nonchim")
+  colnames(track) <- c("demultiplexed", "qual_fitered", "denoisedF", "merged", "length_filtered", "nonchim", "ASV_>_1000_reads")
   rownames(track) <- names(mergers)
   return(track)
 }
