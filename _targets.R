@@ -2,7 +2,8 @@
 
 # Load packages required to define the pipeline:
 library(targets)
-library(tarchetypes) 
+library(tarchetypes)
+library(quarto)
 
 # Set target options:
 tar_option_set(
