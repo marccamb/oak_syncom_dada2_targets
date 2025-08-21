@@ -7,7 +7,7 @@ library(quarto)
 
 # Set target options:
 tar_option_set(
-  packages = c("dada2", "ggplot2", "rBLAST")
+  packages = c("dada2", "ggplot2")
   # format = "qs", # Optionally set the default storage format. qs is fast.
   #
   # Alternatively, if you want workers to run on a high-performance computing
@@ -38,6 +38,7 @@ outp <- "data/03_dada2_data_processing"
 ## This is the path of the count file generated with src/src_count_demultiplexed_reads.sh
 path_count_file <- "data/02_sample_demultiplexing/count_demultiplexed.txt"
 path_sample_tags_file <- "data/00_metadata/sample_tags.csv"
+taxo_db_path <- "data/00_taxonomy_DB/insilico_16SV4_dada2DB.fasta"
 
 list(
   # Get the name of the count file
@@ -98,6 +99,8 @@ list(
                              seqtab_filt_nochim_abund)),
   # Plot read loss
   tar_target(fig_read_loss, plot_read_loss(read_loss)),
+  ## Assign taxonomy,
+  tar_target(asv_metadata_taxo, assign_taxo(asv_metadata, taxo_db_path)),
   ## Generation of the quarto report
   tar_quarto(report, "SynCom_stability_data_processing.qmd") # Here is our call to tar_quarto()
 )
