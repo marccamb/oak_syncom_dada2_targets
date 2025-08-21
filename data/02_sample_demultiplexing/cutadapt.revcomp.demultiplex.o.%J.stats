@@ -1,0 +1,17 @@
++--------------------------------------------------------------------------+
+| Job on the BlueBEAR cluster:
+| Starting at Fri Aug 15 11:23:57 2025 for cambonm(862286)
+| Identity jobid 26732769 jobname 01_src_cutadapt_revcomp_demultiplex.sh
+| Running against project cambonm-oak-syncoms and in partition emerald-shared
+| Requested cpu=4,mem=16G,node=1,billing=4 - 3-00:00:00 walltime
+| Allocated cpu=4,mem=16G,node=2,billing=4
+| Assigned to nodes bear-pg0201u12b,bear-pg0201u18a
+| Command /rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/02_sample_demultiplexing/PE250/01_src_cutadapt_revcomp_demultiplex.sh
+| WorkDir /rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/02_sample_demultiplexing/PE250
++--------------------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| Finished at Fri Aug 15 14:56:38 2025 for cambonm(862286) on the BlueBEAR Cluster
+| Required (06:38:08 cputime, 676231K memory used) - 03:32:43 walltime
+| JobState COMPLETING - Reason None
+| Exitcode 0:0
++--------------------------------------------------------------------------+

@@ -1,0 +1,17 @@
++--------------------------------------------------------------------------+
+| Job on the BlueBEAR cluster:
+| Starting at Fri Aug 15 15:38:32 2025 for cambonm(862286)
+| Identity jobid 26747239 jobname 02_src_count_demultiplexed_reads.sh
+| Running against project cambonm-oak-syncoms and in partition emerald-shared
+| Requested cpu=1,mem=4G,node=1,billing=1 - 00:05:00 walltime
+| Allocated cpu=1,mem=4G,node=1,billing=1
+| Assigned to nodes bear-pg0201u06b
+| Command /rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/data/02_sample_demultiplexing/PE250/02_src_count_demultiplexed_reads.sh
+| WorkDir /rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/data/02_sample_demultiplexing/PE250
++--------------------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| Finished at Fri Aug 15 15:39:31 2025 for cambonm(862286) on the BlueBEAR Cluster
+| Required (00:46.638 cputime, 1482K memory used) - 00:01:01 walltime
+| JobState COMPLETING - Reason None
+| Exitcode 0:0
++--------------------------------------------------------------------------+

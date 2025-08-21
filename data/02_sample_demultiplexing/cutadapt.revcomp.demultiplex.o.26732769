@@ -1,0 +1,16 @@
+This is cutadapt 4.9 with Python 3.11.3
+Command line parameters: -e 0.15 --no-indels --cores=0 --revcomp -g file:tag_primers_16SV4_fwd.fasta -G file:tag_primers_16SV4_rev.fasta -o 16SV4_revcomp/{name1}-{name2}.R1.fastq.gz -p 16SV4_revcomp/{name1}-{name2}.R2.fastq.gz /rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/01_raw_data/PE250/X204SC24085297-Z01-F003/01.RawData/pool_1//pool_1_1.fq.gz /rds/projects/c/cambonm-oak-syncoms/250730_SynCom_stability_experiment/01_raw_data/PE250/X204SC24085297-Z01-F003/01.RawData/pool_1//pool_1_2.fq.gz
+Processing paired-end reads on 2 cores ...
+Finished in 12747.037 s (657.064 µs/read; 0.09 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:         19,400,005
+Pairs written (passing filters):    19,400,005 (100.0%)
+
+Total basepairs processed: 9,700,002,500 bp
+  Read 1: 4,850,001,250 bp
+  Read 2: 4,850,001,250 bp
+Total written (filtered):  8,459,326,033 bp (87.2%)
+  Read 1: 4,228,119,743 bp
+  Read 2: 4,231,206,290 bp
