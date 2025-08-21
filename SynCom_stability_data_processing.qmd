@@ -250,6 +250,17 @@ tar_load(fig_read_loss)
 fig_read_loss
 ```
 
+## Assigning taxonomy with my insilico reference database
+
+To perform this I am using [rBLAST](https://heronoh.github.io/BLASTr/) which relies on a local installation of NCBI BLAST+ which is already on blueBEAR. So I need to run the following prior to using the {rBLAST} commands.
+
+```{.bash}
+module purge
+module load bear-apps/2023a
+module load BLAST+/2.14.1-gompi-2023a
+```
+
+
 ## Session info
 
 <div style="height:300px;overflow:auto;">

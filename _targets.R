@@ -83,12 +83,6 @@ list(
   # Remove low abundance ASVs
   tar_target(seqtab_filt_nochim_abund, 
              filt_asv_abundance(seqtab_filt_nochim, seuil = 1000)),
-  # Rename ASV and save a ASV sequence fasta file
-  tar_target(asv_metadata, 
-             create_asv_metadata(seqtab_filt_nochim_abund, outp)),
-  # Save rename ASVs in the seqtab and produce asv_table output
-  tar_target(seqtab_final, 
-             save_asv_table(seqtab_filt_nochim_abund, asv_metadata, outp)),
   # Track read loss
   tar_target(read_loss, 
              track_read_loss(filt_paths[["count_denoise"]], 
@@ -99,8 +93,14 @@ list(
                              seqtab_filt_nochim_abund)),
   # Plot read loss
   tar_target(fig_read_loss, plot_read_loss(read_loss)),
-  ## Assign taxonomy,
+  # Rename ASV create ASV_metadata
+  tar_target(asv_metadata, 
+             create_asv_metadata(seqtab_filt_nochim_abund, outp)),
+  ## Assign taxonomy
   tar_target(asv_metadata_taxo, assign_taxo(asv_metadata, taxo_db_path)),
+  # Save rename ASVs in the seqtab and produce asv_table output
+  tar_target(seqtab_final, 
+             save_outputs(seqtab_filt_nochim_abund, asv_metadata_taxo, outp)),
   ## Generation of the quarto report
   tar_quarto(report, "SynCom_stability_data_processing.qmd") # Here is our call to tar_quarto()
 )
