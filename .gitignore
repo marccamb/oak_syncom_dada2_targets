@@ -6,3 +6,10 @@ data/02_sample_demultiplexing
 data/03_dada2_data_processing/01_filtered
 data/03_dada2_data_processing/02_denoised
 data/03_dada2_data_processing/
+renv/library/
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/sandbox/
+renv/staging/
