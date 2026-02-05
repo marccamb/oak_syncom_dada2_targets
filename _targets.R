@@ -38,7 +38,7 @@ outp <- "data/03_dada2_data_processing"
 ## This is the path of the count file generated with src/src_count_demultiplexed_reads.sh
 path_count_file <- "data/02_sample_demultiplexing/count_demultiplexed.txt"
 path_sample_tags_file <- "data/00_metadata/sample_tags.csv"
-taxo_db_path <- "data/00_taxonomy_DB/insilico_16SV4_dada2DB.fasta"
+taxo_db_path <- "data/00_taxonomy_DB/insilico_PCR/blastDB_16SV4"
 
 list(
   # Get the name of the count file
@@ -97,7 +97,7 @@ list(
   tar_target(asv_metadata, 
              create_asv_metadata(seqtab_filt_nochim_abund, outp)),
   ## Assign taxonomy
-  tar_target(asv_metadata_taxo, assign_taxo(asv_metadata, taxo_db_path)),
+  tar_target(asv_metadata_taxo, assign_taxo(asv_metadata, taxo_db_path, perc_ident = 98)),
   # Save rename ASVs in the seqtab and produce asv_table output
   tar_target(seqtab_final, 
              save_outputs(seqtab_filt_nochim_abund, asv_metadata_taxo, outp)),

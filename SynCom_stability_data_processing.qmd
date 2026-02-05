@@ -252,12 +252,11 @@ fig_read_loss
 
 ## Assigning taxonomy with my insilico reference database
 
-To perform this I am using [rBLAST](https://heronoh.github.io/BLASTr/) which relies on a local installation of NCBI BLAST+ which is already on blueBEAR. So I need to run the following prior to using the {rBLAST} commands.
+I first assigned taxnomony using 100% identity with the `assign_species()` function from dada2, but it seems like I have a errors in sequences that were not detected by the denoising algorithm so I am assigning taxonomy again with BLAST+ and 98% identity. To perform this I am using [rBLAST](https://heronoh.github.io/BLASTr/).
 
-```{.bash}
-module purge
-module load bear-apps/2023a
-module load BLAST+/2.14.1-gompi-2023a
+```{r}
+tar_load(asv_metadata_taxo)
+head(asv_metadata_taxo)
 ```
 
 
