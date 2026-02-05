@@ -12,4 +12,5 @@ renv/lock/
 renv/python/
 renv/sandbox/
 renv/staging/
+data/01_raw_data/X204SC24085297-Z01-F003.tar
 data/01_raw_data/PE250/X204SC24085297-Z01-F003.tar
