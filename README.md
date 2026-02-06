@@ -2,6 +2,7 @@
 # Amplicon sequencing data analysis for oak SynComs *in vitro* experiments
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 This repository contains the data processing used in the paper **TITLE** **DOI** (SynCom
 =======
@@ -11,6 +12,9 @@ This repository contains the data processing used in the paper **TITLE** **DOI**
 This the data processing used in the paper **TITLE** **DOI** (SynCom
 >>>>>>> ecc2970798c07e47e3c4fb242624dfa4fb2ed8f4
 >>>>>>> 74e1fbccad627122fd41157866ded4fb120ea310
+=======
+This repository contains the data processing used in the paper **TITLE** **DOI** (SynCom
+>>>>>>> 2a2d27558d4809ba62640567e2610aeef06f7344
 stability and coalescence experiment).
 
 This [{targets}](https://books.ropensci.org/targets/) reproducible
@@ -32,9 +36,12 @@ Raw data can be downloaded at **link** and should be placed in
 `data/01_raw_data/MD5.txt`.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 74e1fbccad627122fd41157866ded4fb120ea310
+=======
+>>>>>>> 2a2d27558d4809ba62640567e2610aeef06f7344
 ## How to run the pipeline
 
 1. `install.packages("renv")` to install {renv} from CRAN
@@ -45,11 +52,14 @@ Raw data can be downloaded at **link** and should be placed in
 3.  `tar_make()` similar to run the pipeline.
 4.  `tar_read()` to read target output.
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 ## {targets} pipeline
 >>>>>>> ecc2970798c07e47e3c4fb242624dfa4fb2ed8f4
 >>>>>>> 74e1fbccad627122fd41157866ded4fb120ea310
+=======
+>>>>>>> 2a2d27558d4809ba62640567e2610aeef06f7344
 
 ### Files
 
@@ -65,6 +75,7 @@ Raw data can be downloaded at **link** and should be placed in
     pipeline.
 -   `data/0[23]*` contain outputs of the pipeline
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -78,3 +89,5 @@ Raw data can be downloaded at **link** and should be placed in
 4.  `tar_read()` to read target output.
 >>>>>>> ecc2970798c07e47e3c4fb242624dfa4fb2ed8f4
 >>>>>>> 74e1fbccad627122fd41157866ded4fb120ea310
+=======
+>>>>>>> 2a2d27558d4809ba62640567e2610aeef06f7344
